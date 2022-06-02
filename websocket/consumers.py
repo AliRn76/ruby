@@ -13,10 +13,11 @@ class RubyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
         await self.accept()
+        # 1. Authentication
         if self.user is None:
-            # 1. Authentication
             return await self.close(code=WSStatus.UNAUTHORIZED)
-        # 2. Set Him As Online
+        # 2. Update LastLogin & IsOnline
+        await self.update_last_login()
         await self.set_user_online()
         # 3. Check It Has Unreceived Message ?
         for message in await self.get_unreceived_messages():
@@ -41,7 +42,11 @@ class RubyConsumer(AsyncWebsocketConsumer):
     async def encode_json(cls, content):
         return json.dumps(content)
 
-    # # # Main Methods
+    # # # Methods
+
+    @database_sync_to_async
+    def update_last_login(self):
+        self.user.update_last_login()
 
     @database_sync_to_async
     def set_user_online(self):
