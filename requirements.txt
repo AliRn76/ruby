@@ -1,0 +1,13 @@
+Django
+djangorestframework
+Pillow
+channels
+gunicorn
+redis
+python-jose[cryptography]
+python-dotenv
+django-imagekit
+daphne
+channels-redis
+Twisted[http2]
+orjson
