@@ -5,8 +5,6 @@ Author Ali RajabNezhad 17 May 2022
 import redis
 from pathlib import Path
 from datetime import timedelta
-
-from django.utils import timezone
 from dotenv import dotenv_values
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -15,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 config = dotenv_values(BASE_DIR / '.secret_keys')
 
 SECRET_KEY = config['SECRET_KEY']
-
+    
 MYSQL_DB = config['MYSQL_DB']
 MYSQL_USER = config['MYSQL_USER']
 MYSQL_PASS = config['MYSQL_PASS']

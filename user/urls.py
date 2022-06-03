@@ -1,6 +1,6 @@
 from django.urls import path
 from user.views import RegisterAPIView, LoginAPIView, RefreshTokenAPIView, ProfileAPIView, MyProfileAPIView, \
-    ProfilePictureAPIView
+    ProfilePictureAPIView, RoomsAPIView, UpdateRoomAPIView, ContactAPIView
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view()),
@@ -10,4 +10,9 @@ urlpatterns = [
     path('profile/', MyProfileAPIView.as_view()),
     path('profile/<int:user_id>/', ProfileAPIView.as_view()),
     path('profile/picture/', ProfilePictureAPIView.as_view()),
+
+    path('room/', RoomsAPIView.as_view()),
+    path('room/<int:user_room_id>/', UpdateRoomAPIView.as_view()),
+
+    path('contact/', ContactAPIView.as_view()),
 ]

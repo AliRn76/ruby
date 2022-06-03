@@ -4,7 +4,7 @@ from pv.models import PV
 
 def get_pv_users_from_db(pv_id: int):
     pv = PV.objects.get(id=pv_id)
-    return [pv.user1_id, pv.user2_id]
+    return [pv.user1_id.id, pv.user2_id.id]
 
 
 def get_pv_members(pv_id: int) -> list[int]:

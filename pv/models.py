@@ -17,8 +17,6 @@ class PV(models.Model):
     user1_is_favorite   = models.BooleanField(db_column='User1IsFavorite', default=False)
     user2_is_favorite   = models.BooleanField(db_column='User2IsFavorite', default=False)
 
-    timestamp           = models.DateTimeField(db_column='Timestamp', blank=True, null=True)
-    last_message        = models.DateTimeField(db_column='LastMessage', blank=True, null=True)
     date_created        = models.DateTimeField(db_column='DateCreated', auto_now_add=True)
     user1_id            = models.ForeignKey(User, models.DO_NOTHING, related_name='user1_id', db_column='User1ID')
     user2_id            = models.ForeignKey(User, models.DO_NOTHING, related_name='user2_id', db_column='User2ID')

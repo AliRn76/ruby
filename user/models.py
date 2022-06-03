@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
+from configs.base_manager import BaseManager
 from user.managers import UserManager
 from uuid import NAMESPACE_URL, uuid5
 from pilkit.processors import ResizeToFill
@@ -44,6 +45,9 @@ class User(AbstractBaseUser):
 
     class Meta:
         db_table = 'User'
+        indexes = [
+            models.Index(fields=['phone_number']),
+        ]
 
     def __str__(self):
         return f'User(id={self.id}, username={self.username})'
@@ -58,3 +62,33 @@ class User(AbstractBaseUser):
     def update_last_login(self):
         self.last_login = timezone.now()
         self.save(update_fields=['last_login'])
+
+
+class UserRoom(models.Model):
+    id = models.BigAutoField(db_column='ID', primary_key=True)
+    is_pv   = models.BooleanField(db_column='IsPV')
+    room_id = models.PositiveBigIntegerField(db_column='RoomID')
+    last_message = models.TextField(db_column='LastMessage', blank=True, null=True)
+    timestamp = models.DateTimeField(db_column='Timestamp', blank=True, null=True)
+    is_pinned = models.BooleanField(db_column='IsPinned', default=False)
+    is_muted = models.BooleanField(db_column='IsMuted', default=False)
+    user_id = models.ForeignKey(User, models.CASCADE, db_column='UserID')
+
+    objects = BaseManager()
+
+    class Meta:
+        db_table = 'UserRoom'
+        indexes = [
+            models.Index(fields=['is_pv', 'user_id', 'room_id']),
+            models.Index(fields=['last_message', 'user_id']),
+            models.Index(fields=['last_message', 'id']),
+        ]
+        unique_together = ['room_id', 'user_id']
+
+    def __str__(self):
+        return f'UserRoom(id={self.id}, user_id={self.user_id.id}, room_id={self.room_id}, is_pv={self.is_pv}, last_message={self.last_message})'
+
+    def update_last_message(self, text: str):
+        self.last_message = text
+        self.timestamp = timezone.now()
+        self.save(update_fields=['last_message', 'timestamp'])

@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 
 from user.exceptions import UsernameOrPasswordIsNotCorrect
-from user.models import User
+from user.models import User, UserRoom
 from rest_framework import serializers
 
 
@@ -37,10 +37,11 @@ class LoginSerializer(serializers.Serializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ReadOnlyField(source='get_profile_picture')
+
     class Meta:
         model = User
         exclude = ('password', 'is_banned', 'is_staff')
-        read_only = ('date_joined', 'last_login', 'phone_number')
+        read_only_fields = ('date_joined', 'last_login', 'phone_number')
         extra_kwargs = {
             'username': {'required': False},
         }
@@ -53,3 +54,14 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return {'profile_picture': instance.get_profile_picture}
+
+
+class RoomsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRoom
+        exclude = ('user_id', )
+        read_only_fields = ('is_pv', 'room_id', 'last_message', 'timestamp')
+
+
+class ContactSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(min_length=11, max_length=15)
