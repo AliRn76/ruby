@@ -5,14 +5,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from configs.paginations import Pagination
+from cache.queries import get_otp, remove_otp
 from user.authentication import JWTAuthentication
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView, \
-    DestroyAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView, ListAPIView
 
 from user.models import User, UserRoom
-from user.serializers import RegisterSerializer, LoginSerializer, ProfileSerializer, ProfilePictureSerializer, \
-    RoomsSerializer, ContactSerializer
+from user.serializers import (
+    ProfilePictureSerializer,
+    SubmitPhoneSerializer,
+    RegisterSerializer,
+    ProfileSerializer,
+    LoginSerializer,
+    RoomsSerializer,
+    ContactSerializer,
+    SubmitOTPSerializer,
+)
 
 
 class RegisterAPIView(CreateAPIView):
@@ -28,6 +36,29 @@ class LoginAPIView(APIView):
         serializer.user.update_last_login()
         tokens = JWTAuthentication.encode_jwt_token(user=serializer.user)
         return Response(data=tokens, status=status.HTTP_202_ACCEPTED)
+
+
+class SubmitPhoneAPIView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubmitPhoneSerializer
+
+    def get_object(self, *args, **kwargs):
+        return self.request.user
+
+
+class SubmitOTPAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubmitOTPSerializer
+
+    def post(self, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data['otp'] == get_otp(self.request.user.id):
+            remove_otp(self.request.user.id)
+            return Response(status=status.HTTP_202_ACCEPTED)
+        else:
+            data = {'detail': 'OTP Not Valid'}
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RefreshTokenAPIView(APIView):

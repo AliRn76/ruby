@@ -19,6 +19,7 @@ class RubyConsumer(AsyncWebsocketConsumer):
         # 2. Update LastLogin & IsOnline
         await self.update_last_login()
         await self.set_user_online()
+
         # 3. Check It Has Unreceived Message ?
         for message in await self.get_unreceived_messages():
             # 4. Send His Notifications If Not None

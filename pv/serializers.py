@@ -23,4 +23,7 @@ class PVMessageSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        return {}
+        if self.context['request'].method == 'GET':
+            return super(PVMessageSerializer, self).to_representation(instance)
+        else:
+            return {}

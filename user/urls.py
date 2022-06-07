@@ -1,10 +1,12 @@
 from django.urls import path
 from user.views import RegisterAPIView, LoginAPIView, RefreshTokenAPIView, ProfileAPIView, MyProfileAPIView, \
-    ProfilePictureAPIView, RoomsAPIView, UpdateRoomAPIView, ContactAPIView
+    ProfilePictureAPIView, RoomsAPIView, UpdateRoomAPIView, ContactAPIView, SubmitPhoneAPIView, SubmitOTPAPIView
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view()),
     path('login/', LoginAPIView.as_view()),
+    path('submit-phone/', SubmitPhoneAPIView.as_view()),
+    path('submit-otp/', SubmitOTPAPIView.as_view()),
     path('refresh/', RefreshTokenAPIView.as_view()),
 
     path('profile/', MyProfileAPIView.as_view()),

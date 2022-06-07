@@ -1,8 +1,12 @@
 from django.contrib.auth.hashers import make_password
 
+from cache.queries import set_otp
+from configs.settings import OTP_LEN
 from user.exceptions import UsernameOrPasswordIsNotCorrect
 from user.models import User, UserRoom
 from rest_framework import serializers
+
+from user.utils import generate_otp
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -33,6 +37,27 @@ class LoginSerializer(serializers.Serializer):
         if not self.user.check_password(password):
             raise UsernameOrPasswordIsNotCorrect
         return password
+
+
+class SubmitPhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['phone_number']
+        extra_kwargs = {
+            'phone_number': {'required': True}
+        }
+
+    def update(self, instance, validated_data):
+        # TODO: Send OTP
+        set_otp(user_id=self.context['request'].user.id, otp=generate_otp())
+        return super(SubmitPhoneSerializer, self).update(instance, validated_data)
+
+    def to_representation(self, instance):
+        return {'detail': 'OTP Sent Successfully.'}
+
+
+class SubmitOTPSerializer(serializers.Serializer):
+    otp = serializers.CharField(min_length=OTP_LEN, max_length=OTP_LEN, allow_null=False)
 
 
 class ProfileSerializer(serializers.ModelSerializer):

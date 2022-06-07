@@ -66,7 +66,9 @@ class PVMessage(models.Model):
 
     class Meta:
         db_table = 'PVMessage'
-
+        indexes = [
+            models.Index(fields=['user_id', 'pv_id']),
+        ]
 
 
 

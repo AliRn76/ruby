@@ -2,10 +2,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from pv.models import PV
 from user.models import User
+from pv.models import PV, PVMessage
+from configs.paginations import Pagination
 from pv.serializers import PVMessageSerializer
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -22,7 +23,10 @@ class CreatePVAPIView(APIView):
         return Response(data=data, status=status.HTTP_201_CREATED)
 
 
-class PVMessageAPIView(CreateAPIView):
+class PVMessageAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PVMessageSerializer
+    pagination_class = Pagination
 
+    def get_queryset(self):
+        return PVMessage.objects.filter(user_id=self.request.user.id, pv_id=self.kwargs['pv_id'])
