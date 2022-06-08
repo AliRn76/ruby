@@ -1,12 +1,17 @@
 from django.contrib.auth.hashers import make_password
 
-from cache.queries import set_otp
-from configs.settings import OTP_LEN
-from user.exceptions import UsernameOrPasswordIsNotCorrect
+from cache.queries import set_otp, get_forget_password_otp, remove_forget_password_otp
+from configs.messages import SUCCESS_OTP
+from configs.settings import OTP_LEN, OTP_EXP_SECOND
+from user.exceptions import UsernameOrPasswordIsNotCorrect, OTPIsNotValid, UsernameAlreadyExists
 from user.models import User, UserRoom
 from rest_framework import serializers
 
 from user.utils import generate_otp
+
+
+class UsernameSerializer(serializers.Serializer):
+    username = serializers.CharField(min_length=3, max_length=15, allow_null=False)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -22,8 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return {}
 
 
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(min_length=3, max_length=15, allow_null=False)
+class LoginSerializer(UsernameSerializer):
     password = serializers.CharField(min_length=4, max_length=15, allow_null=False)
 
     def validate_username(self, username):
@@ -37,6 +41,15 @@ class LoginSerializer(serializers.Serializer):
         if not self.user.check_password(password):
             raise UsernameOrPasswordIsNotCorrect
         return password
+
+
+class CheckUsernameSerializer(UsernameSerializer):
+    def validate_username(self, username):
+        try:
+            User.objects.get(username=username)
+            raise UsernameAlreadyExists
+        except User.DoesNotExist:
+            return username
 
 
 class SubmitPhoneSerializer(serializers.ModelSerializer):
@@ -53,11 +66,27 @@ class SubmitPhoneSerializer(serializers.ModelSerializer):
         return super(SubmitPhoneSerializer, self).update(instance, validated_data)
 
     def to_representation(self, instance):
-        return {'detail': 'OTP Sent Successfully.'}
+        return {'detail': SUCCESS_OTP, 'timer': OTP_EXP_SECOND}
 
 
 class SubmitOTPSerializer(serializers.Serializer):
     otp = serializers.CharField(min_length=OTP_LEN, max_length=OTP_LEN, allow_null=False)
+
+
+class NewPasswordSerializer(serializers.ModelSerializer):
+    otp = serializers.CharField(min_length=OTP_LEN, max_length=OTP_LEN, allow_null=False)
+
+    class Meta:
+        model = User
+        fields = ['password', 'otp']
+
+    def validate_otp(self, otp):
+        _otp = get_forget_password_otp(user_id=self.context['request'].user.id)
+        if otp == _otp:
+            remove_forget_password_otp(user_id=self.context['request'].user.id)
+            return otp
+        else:
+            raise OTPIsNotValid
 
 
 class ProfileSerializer(serializers.ModelSerializer):

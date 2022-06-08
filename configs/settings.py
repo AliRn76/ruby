@@ -23,6 +23,8 @@ MYSQL_PORT = config['MYSQL_PORT']
 REDIS_HOST = config['REDIS_HOST']
 REDIS_PORT = config['REDIS_PORT']
 
+OTP_EXP_SECOND = int(config['OTP_EXP_SECOND'])
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -140,7 +142,6 @@ REDIS_UNREAD_MESSAGES: redis.Redis = redis.Redis(connection_pool=REDIS_UNREAD_ME
 
 PV_EXP_TIME = timedelta(days=2).total_seconds()
 GROUP_EXP_TIME = timedelta(days=7).total_seconds()
-OTP_EXP_TIME = timedelta(minutes=2).total_seconds()
 
 OTP_LEN = 4
 

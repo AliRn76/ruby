@@ -1,6 +1,6 @@
 import orjson as json
-from cache.keys import pv_members, group_members, otp_key
-from configs.settings import REDIS, PV_EXP_TIME, REDIS_ONLINE_USERS, REDIS_UNREAD_MESSAGES, OTP_EXP_TIME
+from cache.keys import pv_members, group_members, otp_key, forget_password_otp_key
+from configs.settings import REDIS, PV_EXP_TIME, REDIS_ONLINE_USERS, REDIS_UNREAD_MESSAGES, OTP_EXP_SECOND
 
 
 # # # Online/ Offline
@@ -47,7 +47,7 @@ def get_unread_messages_from_redis(user_id: int) -> list[str]:
 
 # # # OTP
 def set_otp(user_id: int, otp: str):
-    REDIS.set(otp_key(user_id), otp, ex=int(OTP_EXP_TIME))
+    REDIS.set(otp_key(user_id), otp, ex=OTP_EXP_SECOND)
 
 def get_otp(user_id: int) -> str:
     otp = REDIS.get(otp_key(user_id)) or b''
@@ -55,3 +55,15 @@ def get_otp(user_id: int) -> str:
 
 def remove_otp(user_id: int):
     REDIS.delete(otp_key(user_id)) 
+
+
+# # # Forget Password
+def set_forget_password_otp(user_id: int, otp: str):
+    REDIS.set(forget_password_otp_key(user_id), otp, ex=OTP_EXP_SECOND)
+
+def get_forget_password_otp(user_id: int) -> str:
+    otp = REDIS.get(forget_password_otp_key(user_id)) or b''
+    return otp.decode()
+
+def remove_forget_password_otp(user_id: int):
+    REDIS.delete(forget_password_otp_key(user_id))

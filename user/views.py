@@ -4,11 +4,14 @@ from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from configs.messages import SUCCESS_OTP, WRONG_OTP, PASSWORD_CHANGED
 from configs.paginations import Pagination
-from cache.queries import get_otp, remove_otp
+from cache.queries import get_otp, remove_otp, set_forget_password_otp
+from configs.settings import OTP_EXP_SECOND
 from user.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView, ListAPIView, \
+    GenericAPIView
 
 from user.models import User, UserRoom
 from user.serializers import (
@@ -19,8 +22,9 @@ from user.serializers import (
     LoginSerializer,
     RoomsSerializer,
     ContactSerializer,
-    SubmitOTPSerializer,
+    SubmitOTPSerializer, NewPasswordSerializer, CheckUsernameSerializer,
 )
+from user.utils import generate_otp
 
 
 class RegisterAPIView(CreateAPIView):
@@ -36,6 +40,15 @@ class LoginAPIView(APIView):
         serializer.user.update_last_login()
         tokens = JWTAuthentication.encode_jwt_token(user=serializer.user)
         return Response(data=tokens, status=status.HTTP_202_ACCEPTED)
+
+
+class CheckUsernameAPIView(APIView):
+    serializer_class = CheckUsernameSerializer
+
+    def post(self, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response()
 
 
 class SubmitPhoneAPIView(UpdateAPIView):
@@ -57,7 +70,7 @@ class SubmitOTPAPIView(APIView):
             remove_otp(self.request.user.id)
             return Response(status=status.HTTP_202_ACCEPTED)
         else:
-            data = {'detail': 'OTP Not Valid'}
+            data = {'detail': WRONG_OTP}
             return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -67,6 +80,28 @@ class RefreshTokenAPIView(APIView):
     def post(self, *args, **kwargs):
         tokens = JWTAuthentication.encode_jwt_token(self.request.user)
         return Response(data=tokens, status=status.HTTP_202_ACCEPTED)
+
+
+class ForgetPasswordAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, *args, **kwargs):
+        set_forget_password_otp(user_id=self.request.user.id, otp=generate_otp())
+        data = {'detail': SUCCESS_OTP, 'timer': OTP_EXP_SECOND}
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class NewPasswordAPIView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NewPasswordSerializer
+
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        self.request.user.set_password(serializer.validated_data['password'])
+        self.request.user.save(update_fields=['password'])
+        data = {'detail': PASSWORD_CHANGED}
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class MyProfileAPIView(RetrieveUpdateAPIView):
