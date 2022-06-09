@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import make_password
 from cache.queries import set_otp, get_forget_password_otp, remove_forget_password_otp
 from configs.messages import SUCCESS_OTP
 from configs.settings import OTP_LEN, OTP_EXP_SECOND
+from user.authentication import JWTAuthentication
 from user.exceptions import UsernameOrPasswordIsNotCorrect, OTPIsNotValid, UsernameAlreadyExists
 from user.models import User, UserRoom
 from rest_framework import serializers
@@ -24,7 +25,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        return {}
+        instance.update_last_login()
+        return JWTAuthentication.encode_jwt_token(user=instance)
 
 
 class LoginSerializer(UsernameSerializer):
@@ -73,20 +75,24 @@ class SubmitOTPSerializer(serializers.Serializer):
     otp = serializers.CharField(min_length=OTP_LEN, max_length=OTP_LEN, allow_null=False)
 
 
+class ForgetPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['phone_number']
+        extra_kwargs = {
+            'phone_number': {'required': True}
+        }
+
+
 class NewPasswordSerializer(serializers.ModelSerializer):
     otp = serializers.CharField(min_length=OTP_LEN, max_length=OTP_LEN, allow_null=False)
 
     class Meta:
         model = User
-        fields = ['password', 'otp']
-
-    def validate_otp(self, otp):
-        _otp = get_forget_password_otp(user_id=self.context['request'].user.id)
-        if otp == _otp:
-            remove_forget_password_otp(user_id=self.context['request'].user.id)
-            return otp
-        else:
-            raise OTPIsNotValid
+        fields = ['phone_number', 'password', 'otp']
+        extra_kwargs = {
+            'phone_number': {'required': True}
+        }
 
 
 class ProfileSerializer(serializers.ModelSerializer):

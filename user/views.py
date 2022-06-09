@@ -6,13 +6,15 @@ from rest_framework.response import Response
 
 from configs.messages import SUCCESS_OTP, WRONG_OTP, PASSWORD_CHANGED
 from configs.paginations import Pagination
-from cache.queries import get_otp, remove_otp, set_forget_password_otp
+from cache.queries import get_otp, remove_otp, set_forget_password_otp, get_forget_password_otp, \
+    remove_forget_password_otp
 from configs.settings import OTP_EXP_SECOND
 from user.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView, ListAPIView, \
     GenericAPIView
 
+from user.exceptions import OTPIsNotValid
 from user.models import User, UserRoom
 from user.serializers import (
     ProfilePictureSerializer,
@@ -22,7 +24,7 @@ from user.serializers import (
     LoginSerializer,
     RoomsSerializer,
     ContactSerializer,
-    SubmitOTPSerializer, NewPasswordSerializer, CheckUsernameSerializer,
+    SubmitOTPSerializer, NewPasswordSerializer, CheckUsernameSerializer, ForgetPasswordSerializer,
 )
 from user.utils import generate_otp
 
@@ -83,23 +85,34 @@ class RefreshTokenAPIView(APIView):
 
 
 class ForgetPasswordAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    serializer_class = ForgetPasswordSerializer
 
     def post(self, *args, **kwargs):
-        set_forget_password_otp(user_id=self.request.user.id, otp=generate_otp())
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get_or_raise(phone_number=serializer.validated_data['phone_number'])
+        set_forget_password_otp(user_id=user.id, otp=generate_otp())
         data = {'detail': SUCCESS_OTP, 'timer': OTP_EXP_SECOND}
         return Response(data=data, status=status.HTTP_200_OK)
 
 
-class NewPasswordAPIView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+class NewPasswordAPIView(APIView):
     serializer_class = NewPasswordSerializer
 
+    def check_otp(self, otp):
+        _otp = get_forget_password_otp(user_id=self.user.id)
+        if otp == _otp:
+            remove_forget_password_otp(user_id=self.user.id)
+        else:
+            raise OTPIsNotValid
+
     def post(self, *args, **kwargs):
-        serializer = self.get_serializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
-        self.request.user.set_password(serializer.validated_data['password'])
-        self.request.user.save(update_fields=['password'])
+        self.user = User.objects.get_or_raise(phone_number=serializer.validated_data['phone_number'])
+        self.check_otp(serializer.validated_data['otp'])
+        self.user.set_password(serializer.validated_data['password'])
+        self.user.save(update_fields=['password'])
         data = {'detail': PASSWORD_CHANGED}
         return Response(data=data, status=status.HTTP_200_OK)
 
