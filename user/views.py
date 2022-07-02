@@ -165,9 +165,22 @@ class ContactAPIView(APIView):
     def post(self, *args, **kwargs):
         serializer = self.serializer_class(data=self.request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        data = [
-            {d['phone_number']: True} if User.objects.filter(phone_number=d['phone_number']).first() else {d['phone_number']: False}
-            for d in serializer.validated_data
-        ]
-        return Response(data=data, status=status.HTTP_200_OK)
+        contact = []
+        for s in serializer.validated_data:
+            if user := User.objects.filter(phone_number=s['phone_number']).first():
+                data = {
+                    'name': f'{user.first_name} {user.last_name}',
+                    'phone_number': user.phone_number,
+                    'is_ruby_user': True,
+                    'user_id': user.id
+                }
+            else:
+                data = {
+                    'name': None,
+                    'phone_number': s['phone_number'],
+                    'is_ruby_user': False,
+                    'user_id': None
+                }
+            contact.append(data)
+        return Response(data=contact, status=status.HTTP_200_OK)
 

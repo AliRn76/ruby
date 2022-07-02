@@ -9,7 +9,7 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view()),
     path('refresh/', RefreshTokenAPIView.as_view()),
 
-    path('submit-phone/', SubmitPhoneAPIView.as_view()),
+    path('submit-phone/', SubmitPhoneAPIView.as_view(http_method_names=['patch'])),
     path('submit-otp/', SubmitOTPAPIView.as_view()),
 
     path('forget-password/', ForgetPasswordAPIView.as_view()),
