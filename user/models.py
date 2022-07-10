@@ -29,7 +29,7 @@ class User(AbstractBaseUser):
     last_name = models.CharField(db_column='LastName', max_length=15, blank=True)
     profile_picture = ProcessedImageField(db_column='ProfilePicture', upload_to=user_directory_path, max_length=255,
                                           blank=True, null=True,
-                                          processors=[ResizeToFill(400, 400)], format='JPEG', options={'quality': 80})
+                                          processors=[ResizeToFill(400, 400)], format='JPEG', options={'quality': 90})
     phone_number = models.CharField(db_column='PhoneNumber', blank=True, null=True, max_length=15, validators=[phone_number_regex])
     is_banned = models.BooleanField(db_column='IsBanned', default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

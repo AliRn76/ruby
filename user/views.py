@@ -172,14 +172,16 @@ class ContactAPIView(APIView):
                     'name': f'{user.first_name} {user.last_name}',
                     'phone_number': user.phone_number,
                     'is_ruby_user': True,
-                    'user_id': user.id
+                    'user_id': user.id,
+                    'profile_picture': user.get_profile_picture
                 }
             else:
                 data = {
                     'name': None,
                     'phone_number': s['phone_number'],
                     'is_ruby_user': False,
-                    'user_id': None
+                    'user_id': None,
+                    'profile_picture': user.get_profile_picture
                 }
             contact.append(data)
         return Response(data=contact, status=status.HTTP_200_OK)

@@ -125,3 +125,4 @@ class RoomsSerializer(serializers.ModelSerializer):
 
 class ContactSerializer(serializers.Serializer):
     phone_number = serializers.CharField(min_length=11, max_length=15)
+
