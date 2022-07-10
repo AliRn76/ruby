@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from configs.messages import SUCCESS_OTP, WRONG_OTP, PASSWORD_CHANGED
 from configs.paginations import Pagination
 from cache.queries import get_otp, remove_otp, set_forget_password_otp, get_forget_password_otp, \
-    remove_forget_password_otp
+    remove_forget_password_otp, is_online
 from configs.settings import OTP_EXP_SECOND
 from user.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -173,7 +173,8 @@ class ContactAPIView(APIView):
                     'phone_number': user.phone_number,
                     'is_ruby_user': True,
                     'user_id': user.id,
-                    'profile_picture': user.get_profile_picture
+                    'profile_picture': user.get_profile_picture,
+                    'is_online': bool(is_online(user.id))
                 }
             else:
                 data = {
@@ -181,7 +182,8 @@ class ContactAPIView(APIView):
                     'phone_number': s['phone_number'],
                     'is_ruby_user': False,
                     'user_id': None,
-                    'profile_picture': user.get_profile_picture
+                    'profile_picture': None,
+                    'is_online': False
                 }
             contact.append(data)
         return Response(data=contact, status=status.HTTP_200_OK)
