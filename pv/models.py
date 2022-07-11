@@ -35,10 +35,10 @@ class PV(models.Model):
     @classmethod
     def create_pv(cls, user1, user2):
         q = Q(user1_id=user1.id, user2_id=user2.id) | Q(user1_id=user2.id, user2_id=user1.id)
-        pv = cls.objects.filter(q).first()
-        if pv:
-            raise PVAlreadyExists
-        return cls.objects.create(user1_id=user1, user2_id=user2)
+        if pv := cls.objects.filter(q).first():
+            return pv
+        else:
+            return cls.objects.create(user1_id=user1, user2_id=user2)
 
 
 class PVMessage(models.Model):
