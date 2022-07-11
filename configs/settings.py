@@ -23,6 +23,8 @@ MYSQL_PORT = config['MYSQL_PORT']
 REDIS_HOST = config['REDIS_HOST']
 REDIS_PORT = config['REDIS_PORT']
 
+ZOHO_KEY = config['ZOHO_KEY']
+
 OTP_EXP_SECOND = int(config['OTP_EXP_SECOND'])
 
 # SECURITY WARNING: don't run with debug turned on in production!

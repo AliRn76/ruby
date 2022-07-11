@@ -11,3 +11,4 @@ daphne
 channels-redis
 Twisted[http2]
 orjson
+requests
