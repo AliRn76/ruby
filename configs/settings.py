@@ -32,6 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+BASE_URL = 'http://ruby.alirn.ir'
 
 # Application definition
 

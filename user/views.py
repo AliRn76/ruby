@@ -169,7 +169,7 @@ class ContactAPIView(APIView):
         for s in serializer.validated_data:
             if user := User.objects.filter(phone_number=s['phone_number']).first():
                 data = {
-                    'name': f'{user.first_name} {user.last_name}',
+                    'name': user.full_name,
                     'phone_number': user.phone_number,
                     'is_ruby_user': True,
                     'user_id': user.id,

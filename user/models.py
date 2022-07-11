@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 from configs.base_manager import BaseManager
+from configs.settings import BASE_URL
 from user.managers import UserManager
 from uuid import NAMESPACE_URL, uuid5
 from pilkit.processors import ResizeToFill
@@ -53,9 +54,13 @@ class User(AbstractBaseUser):
         return f'User(id={self.id}, username={self.username})'
 
     @property
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    @property
     def get_profile_picture(self):
         try:
-            return self.profile_picture.url
+            return f'{BASE_URL}{self.profile_picture.url}'
         except ValueError:
             return None
 
@@ -72,6 +77,10 @@ class UserRoom(models.Model):
     timestamp = models.DateTimeField(db_column='Timestamp', blank=True, null=True)
     is_pinned = models.BooleanField(db_column='IsPinned', default=False)
     is_muted = models.BooleanField(db_column='IsMuted', default=False)
+    name = models.CharField(db_column='Name', max_length=31)  # TODO
+    avatar = models.ImageField(db_column='Avatar', max_length=255)  # TODO
+    is_last_from_me = models.BooleanField(db_column='IsLastFromMe', null=True)  # TODO
+    # is_unread = models.BooleanField(db_column='IsUnread')  # TODO
     user_id = models.ForeignKey(User, models.CASCADE, db_column='UserID')
 
     objects = BaseManager()
