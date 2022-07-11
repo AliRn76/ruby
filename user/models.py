@@ -97,7 +97,8 @@ class UserRoom(models.Model):
     def __str__(self):
         return f'UserRoom(id={self.id}, user_id={self.user_id.id}, room_id={self.room_id}, is_pv={self.is_pv}, last_message={self.last_message})'
 
-    def update_last_message(self, text: str):
+    def update_last_message(self, text: str, is_from_me: bool):
         self.last_message = text
+        self.is_last_from_me = is_from_me
         self.timestamp = timezone.now()
-        self.save(update_fields=['last_message', 'timestamp'])
+        self.save(update_fields=['last_message', 'timestamp', 'is_last_from_me'])

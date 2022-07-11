@@ -150,7 +150,7 @@ class RoomsAPIView(ListAPIView):
         return UserRoom.objects.filter(~Q(last_message=None), user_id=self.request.user).order_by('-timestamp')
 
 
-class UpdateRoomAPIView(UpdateAPIView):
+class RetrieveUpdateRoomAPIView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = RoomsSerializer
 
