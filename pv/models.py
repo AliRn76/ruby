@@ -45,12 +45,12 @@ class PVMessage(models.Model):
     id              = models.AutoField(db_column='ID', primary_key=True)
     text            = models.TextField(db_column='Text', blank=True, null=True)
     image           = models.CharField(db_column='Image', max_length=255, blank=True, null=True)
-    is_reply        = models.BooleanField(db_column='IsReply', default=False)
+    is_unread       = models.BooleanField(db_column='IsUnread', default=True)
     date_added      = models.DateTimeField(db_column='DateAdded', auto_now_add=True)
     date_updated    = models.DateTimeField(db_column='DateUpdated', auto_now=True)
     pv_id           = models.ForeignKey(PV, models.DO_NOTHING, db_column='PVID', blank=True, null=True)
     user_id         = models.ForeignKey(User, models.DO_NOTHING, db_column='UserID')
-    pv_message_id   = models.ForeignKey('self', models.DO_NOTHING, db_column='PvMessageID', blank=True, null=True)
+    reply_id   = models.ForeignKey('self', models.DO_NOTHING, db_column='ReplyID', blank=True, null=True)
 
     objects = BaseManager()
 
@@ -67,6 +67,7 @@ class PVMessage(models.Model):
     class Meta:
         db_table = 'PVMessage'
         indexes = [
+            models.Index(fields=['id', 'user_id']),
             models.Index(fields=['user_id', 'pv_id']),
         ]
 
